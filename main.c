@@ -73,8 +73,10 @@ void* handle_client(void *fd){
         pthread_mutex_unlock(&lock_whole_array);
     }
 
+    pthread_mutex_lock(&lock_whole_array);
     char output_buffer[COM_BUFF_SIZE];
     getContent(output_buffer, request.pos, theArray);
+    pthread_mutex_unlock(&lock_whole_array);
 
     //end
     GET_TIME(end);
@@ -102,6 +104,11 @@ void run_server(){
             printf("Connected to client %d\n", client_file_descriptor);
             pthread_create(&thread_ids[i], NULL, handle_client, (void*) (long) client_file_descriptor);
         }
+
+        for (i = 0; i < COM_NUM_REQUEST; i++){
+            pthread_join(thread_ids[i], NULL);
+        }
+
         saveTimes(times_array, COM_NUM_REQUEST);
     }
 }
