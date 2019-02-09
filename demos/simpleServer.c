@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
         {
             for(i=0;i<20;i++)      //can support 20 clients at a time
             {
-                printf("I AM HERE\n");
+                printf("I AM HERE\n"); 
                 clientFileDescriptor=accept(serverFileDescriptor,NULL,NULL);
                 printf("Connected to client %d\n",clientFileDescriptor);
                 pthread_create(&t[i],NULL,ServerEcho,(void *)(long)clientFileDescriptor);
