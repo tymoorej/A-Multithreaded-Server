@@ -1,5 +1,5 @@
 /*
-Implimentation: One read write lock for the each element of the array.
+Implimentation: One mutex for the each element of the array.
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +19,7 @@ int time_index = 0;
 char *server_IP;
 char **theArray;
 pthread_t thread_ids[COM_NUM_REQUEST];
-pthread_rwlock_t *array_locks;
+pthread_mutex_t *array_locks;
 pthread_mutex_t time_lock;
 
 void setup_socket(){
@@ -46,6 +46,7 @@ void setup_socket(){
         perror("Socket Bind Failed\n");
         exit(0);
     }
+
 }
 
 
@@ -62,16 +63,18 @@ void* handle_client(void *fd){
 
     ParseMsg(input_buffer, &request);
 
+
     if (request.is_read){
-        pthread_rwlock_rdlock(&array_locks[request.pos]);
+        pthread_mutex_lock(&array_locks[request.pos]);
         getContent(output_buffer, request.pos, theArray);
-        pthread_rwlock_unlock(&array_locks[request.pos]);
+        pthread_mutex_unlock(&array_locks[request.pos]);
     }
     else{
-        pthread_rwlock_wrlock(&array_locks[request.pos]);
+        pthread_mutex_lock(&array_locks[request.pos]);
         setContent(request.msg, request.pos, theArray);
-        pthread_rwlock_unlock(&array_locks[request.pos]);
+        pthread_mutex_unlock(&array_locks[request.pos]);
     }
+
 
     //end
     GET_TIME(end);
@@ -82,7 +85,7 @@ void* handle_client(void *fd){
     else{
         write(client_file_descriptor, request.msg, COM_BUFF_SIZE);
     }
-    
+
     close(client_file_descriptor);
 
     pthread_mutex_lock(&time_lock);
@@ -123,11 +126,11 @@ int main(int argc, char* argv[]){
     server_IP = argv[2];
     server_port = atoi(argv[3]);
 
-    array_locks = malloc(array_size * sizeof(pthread_rwlock_t));
+    array_locks = malloc(array_size * sizeof(pthread_mutex_t));
 
     int i;
     for (i = 0; i < array_size; i++){
-            pthread_rwlock_init(&array_locks[i], NULL);
+            pthread_mutex_init(&array_locks[i], NULL);
     }
     pthread_mutex_init(&time_lock, NULL);
 
