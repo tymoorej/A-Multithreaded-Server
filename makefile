@@ -3,3 +3,6 @@ main: main.c
 
 client: client.c
 	gcc client.c -o client -lpthread
+
+attacker: attacker.c
+	gcc attacker.c -o attacker -lpthread -lm
